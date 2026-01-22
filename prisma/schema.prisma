@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   output        = "../lib/generated/prisma"
@@ -15,7 +12,7 @@ datasource db {
 model User {
   id            String        @id @default(cuid())
   name          String
-  email         String
+  email         String        @unique
   emailVerified Boolean       @default(false)
   image         String?
   createdAt     DateTime      @default(now())
@@ -24,33 +21,27 @@ model User {
   banned        Boolean       @default(false)
   banReason     String?
   banExpires    DateTime?
-  sessions      Session[]
-  accounts      Account[]
-  transactions  Transaction[]
   categories    Category[]
+  transactions  Transaction[]
+  accounts      Account[]
+  sessions      Session[]
+  paymentPlans  PaymentPlan[]
 
-  @@unique([email])
   @@map("user")
-}
-
-enum UserRole {
-  user
-  admin
 }
 
 model Session {
   id             String   @id
   expiresAt      DateTime
-  token          String
+  token          String   @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   ipAddress      String?
   userAgent      String?
   userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
@@ -59,7 +50,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -69,6 +59,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -85,14 +76,12 @@ model Verification {
 }
 
 model Category {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  createdBy   User   @relation(fields: [createdById], references: [id])
-  createdById String
-
+  id           String        @id @default(uuid())
+  name         String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  createdById  String
+  createdBy    User          @relation(fields: [createdById], references: [id])
   transactions Transaction[]
 
   @@index([createdById])
@@ -106,18 +95,44 @@ model Transaction {
   amount      Decimal           @db.Decimal(10, 2)
   description String?
   createdAt   DateTime          @default(now())
-
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId String
-
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  categoryId  String
   createdById String
+  category    Category          @relation(fields: [categoryId], references: [id])
+  createdBy   User              @relation(fields: [createdById], references: [id])
 
   @@index([createdById])
   @@index([status])
   @@index([createdAt])
   @@index([createdById, status])
   @@index([createdById, status, createdAt])
+}
+
+model PaymentPlan {
+  id          String        @id @default(cuid())
+  name        String
+  supplier    String?
+  event       String?
+  value       Decimal       @db.Decimal(10, 2)
+  dueDate     DateTime
+  status      PaymentStatus @default(PENDING)
+  responsible String?
+  proofUrl    String?
+  testfield   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([dueDate])
+  @@map("payment_plan")
+}
+
+enum UserRole {
+  user
+  admin
 }
 
 enum TransactionStatus {
@@ -129,4 +144,10 @@ enum TransactionStatus {
 enum TransactionType {
   INCOME
   EXPENSE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
 }
