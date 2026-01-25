@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,8 @@ export function NewTransactionDialog({
   const [transactionType, setTransactionType] = useState<
     "INCOME" | "EXPENSE" | null
   >(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const form = useForm<TransactionSchemaType>({
     resolver: zodResolver(transactionSchema),
@@ -62,6 +64,42 @@ export function NewTransactionDialog({
       type: "INCOME",
     },
   });
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Tipo de arquivo não permitido. Use JPG, PNG, WebP ou PDF.");
+      return;
+    }
+
+    // Validar tamanho (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Máximo 5MB.");
+      return;
+    }
+
+    setProofFile(file);
+
+    // Criar preview para imagens
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const removeFile = () => {
+    setProofFile(null);
+    setPreviewUrl(null);
+  };
+
 
   const onSubmit = async (values: TransactionSchemaType) => {
     if (!transactionType) {
@@ -74,7 +112,8 @@ export function NewTransactionDialog({
       transactionType,
       values.amount,
       values.categoryId,
-      values.description || undefined
+      values.description || undefined,
+      proofFile || undefined,
     );
 
     setLoading(false);
@@ -91,6 +130,7 @@ export function NewTransactionDialog({
         categoryId: "",
         type: transactionType,
       });
+      removeFile();
       setOpen(false);
       setTransactionType(null);
       window.location.reload();
@@ -112,6 +152,7 @@ export function NewTransactionDialog({
             type: "INCOME",
           });
           setTransactionType(null);
+          removeFile();
         }
       }}
     >
@@ -121,7 +162,7 @@ export function NewTransactionDialog({
           Nova Transação
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova Transação</DialogTitle>
           <DialogDescription>
@@ -245,7 +286,65 @@ export function NewTransactionDialog({
                         ))}
                       </SelectContent>
                     </Select>
-                  )}
+                 )}
+                             <FormItem>
+               <FormLabel>Comprovante (Opcional)</FormLabel>
+              <div className="space-y-3">
+                {!proofFile ? (
+                  <div className="relative">
+                    <Input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,application/pdf"
+                      onChange={handleFileChange}
+                      disabled={loading}
+                      className="cursor-pointer"
+                    />
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Formatos aceitos: JPG, PNG, WebP ou PDF (máx. 5MB)
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {previewUrl ? (
+                      <div className="relative inline-block">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="h-32 w-32 rounded-lg border object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -right-2 -top-2"
+                          onClick={removeFile}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg border border-dashed p-3">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{proofFile.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(proofFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeFile}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </FormItem> 
                   <FormMessage />
                 </FormItem>
               )}

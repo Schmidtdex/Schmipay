@@ -22,6 +22,7 @@ await requireUser();
     status: transaction.status,
     amount: Number(transaction.amount),
     description: transaction.description || "",
+    proofUrl: transaction.proofUrl || null,
     createdAt: transaction.createdAt,
     category: transaction.category.name,
     createdBy: transaction.createdBy.name,

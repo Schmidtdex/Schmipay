@@ -9,12 +9,37 @@ import { validateCsrf } from "@/lib/csrf";
 import { logger } from "@/lib/logger";
 import { sanitizeText } from "@/lib/sanitize";
 import { isValidEmail } from "@/lib/validation";
+import { success } from "zod";
+
+export async function uploadToCloudinary(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "default");
+
+  try {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      throw new Error("Failed to upload image to Cloudinary");
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+
+  } catch (uploadError) {
+    logger.error("Cloudinary upload error", {}, uploadError as Error);
+    throw new Error("Erro ao enviar imagem. Tente novamente mais tarde.");
+  }
+}
 
 export async function createTransaction(
   type: "INCOME" | "EXPENSE",
   amount: number,
   categoryId: string,
-  description?: string
+  description?: string,
+  proofFile?: File,
 ) {
   let userId = "unknown";
   try {
@@ -73,6 +98,20 @@ export async function createTransaction(
       };
     }
 
+    // Fazer upload do comprovante, se fornecido
+    let proofUrl: string | null = null;
+    if (proofFile) {
+      try {
+        proofUrl = await uploadToCloudinary(proofFile);
+      } catch (uploadError) {
+        logger.error("Error uploading proof file", {}, uploadError as Error);
+        return {
+          success: false,
+          error: "Erro ao enviar comprovante. Tente novamente mais tarde.",
+        };
+      }
+    }
+
     // Validar saldo disponível para saques (EXPENSE)
     if (type === "EXPENSE") {
       // Usar query agregada para melhor performance
@@ -116,6 +155,7 @@ export async function createTransaction(
         categoryId,
         createdById: user.id,
         status: "PENDING",
+        proofUrl: proofUrl || null,
       },
     });
 

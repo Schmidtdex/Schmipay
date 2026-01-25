@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { FileText, ExternalLink } from "lucide-react";
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -84,6 +85,7 @@ export type Transaction = {
   createdAt: Date;
   category: string;
   createdBy: string;
+  proofUrl?: string | null;
 };
 
 const createColumns = (): ColumnDef<Transaction>[] => [
@@ -180,6 +182,31 @@ const createColumns = (): ColumnDef<Transaction>[] => [
       );
     },
   },
+
+  {
+  accessorKey: "proofUrl", 
+  header: () => <div className="text-right">Doc</div>,
+  cell: ({ row }) => {
+    const proofUrl = row.original.proofUrl; 
+    if (!proofUrl) {
+      return <div className="text-right text-muted-foreground/30">-</div>;
+    }
+
+    return (
+      <div className="text-right">
+        <a
+          href={proofUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center rounded-md p-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+          title="Ver comprovante"
+        >
+          <FileText className="h-4 w-4 text-blue-500" />
+        </a>
+      </div>
+    );
+  },
+},
 ];
 
 export function DataTable({ data }: { data: Transaction[] }) {
