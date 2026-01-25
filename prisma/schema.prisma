@@ -94,6 +94,7 @@ model Transaction {
   status      TransactionStatus @default(PENDING)
   amount      Decimal           @db.Decimal(10, 2)
   description String?
+  proofUrl    String?
   createdAt   DateTime          @default(now())
   categoryId  String
   createdById String
@@ -116,7 +117,6 @@ model PaymentPlan {
   dueDate     DateTime
   status      PaymentStatus @default(PENDING)
   responsible String?
-  proofUrl    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

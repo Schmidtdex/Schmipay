@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { Toaster } from "@/components/ui/sonner";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebarWrapper } from "./dashboard/_components/sidebar/app-sidebar-wrapper";
@@ -20,6 +21,7 @@ export default async function PrivateLayout({
   }
 
   return (
+    <>
     <SidebarProvider
       style={
         {
@@ -38,5 +40,7 @@ export default async function PrivateLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
+    <Toaster />
+    </>
   );
 }

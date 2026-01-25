@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  IconCalendarBolt,
   IconDashboard,
   IconDatabase,
   IconListDetails,
@@ -43,6 +44,11 @@ const data = {
       title: "Usuários",
       url: "/dashboard/users",
       icon: IconUsers,
+    },
+    {
+      title: "Planejamento",
+      url: "/planning",
+      icon: IconCalendarBolt,
     },
   ],
   documents: [
