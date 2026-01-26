@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   IconCalendarBolt,
   IconDashboard,
-  IconDatabase,
   IconListDetails,
   IconUsers,
 } from "@tabler/icons-react";
@@ -19,7 +18,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { NavDocuments } from "./nav-documents";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
@@ -51,13 +49,6 @@ const data = {
       icon: IconCalendarBolt,
     },
   ],
-  documents: [
-    {
-      name: "Comprovantes",
-      url: "#",
-      icon: IconDatabase,
-    },
-  ],
 };
 
 export function AppSidebar({
@@ -82,7 +73,6 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} categories={categories} />
-        <NavDocuments items={data.documents} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
