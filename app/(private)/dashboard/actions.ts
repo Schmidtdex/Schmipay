@@ -5,7 +5,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/app/(data)/users/require-user";
 import { requireAdmin } from "@/app/(data)/users/require-admin";
-import { validateCsrf } from "@/lib/csrf";
 import { logger } from "@/lib/logger";
 import { sanitizeText } from "@/lib/sanitize";
 import { isValidEmail } from "@/lib/validation";
@@ -43,14 +42,6 @@ export async function createTransaction(
 ) {
   let userId = "unknown";
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     const user = await requireUser();
     userId = user.id;
@@ -190,14 +181,6 @@ export async function createUser(
   password: string
 ) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     await requireAdmin();
     if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -280,14 +263,6 @@ export async function updateTransactionStatus(
   status: "APPROVED" | "REJECTED"
 ) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     await requireAdmin();
 

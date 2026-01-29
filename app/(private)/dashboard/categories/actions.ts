@@ -3,20 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/app/(data)/users/require-user";
-import { validateCsrf } from "@/lib/csrf";
 import { logger } from "@/lib/logger";
 import { sanitizeText } from "@/lib/sanitize";
 
 export async function createCategory(name: string) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     const user = await requireUser();
 
@@ -81,15 +72,6 @@ export async function createCategory(name: string) {
 
 export async function deleteCategory(categoryId: string) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
-
     const user = await requireUser();
 
     if (

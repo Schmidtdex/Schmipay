@@ -6,7 +6,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/app/(data)/users/require-admin";
 import { requireUser } from "@/app/(data)/users/require-user";
-import { validateCsrf } from "@/lib/csrf";
 import { logger } from "@/lib/logger";
 import { sanitizeText } from "@/lib/sanitize";
 import { isValidEmail } from "@/lib/validation";
@@ -19,15 +18,6 @@ export async function updateUser(
   role?: "user" | "admin"
 ) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
-
     await requireAdmin();
 
     if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
@@ -187,15 +177,6 @@ export async function updateUser(
 
 export async function deleteUser(userId: string) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
-
     await requireAdmin();
 
     if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
@@ -262,14 +243,6 @@ export async function createUser(
   role?: "user" | "admin"
 ) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     // Verificar se o usuário é admin antes de chamar requireAdmin (que faz redirect)
     const currentUser = await requireUser();

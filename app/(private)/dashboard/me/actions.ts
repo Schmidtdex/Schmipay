@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/app/(data)/users/require-user";
-import { validateCsrf } from "@/lib/csrf";
 import { logger } from "@/lib/logger";
 import { sanitizeText } from "@/lib/sanitize";
 
@@ -16,14 +15,6 @@ export async function updateMyProfile(
   newPassword?: string
 ) {
   try {
-    // Validação CSRF
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     const currentUser = await requireUser();
 
