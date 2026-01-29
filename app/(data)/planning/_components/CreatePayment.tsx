@@ -29,6 +29,9 @@ export function CreatePaymentPlanForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (isLoading) return;
+
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -48,6 +51,7 @@ export function CreatePaymentPlanForm() {
       setIsOpen(false);
       setIsLoading(false);
     } catch (error) {
+      console.error(error);
       toast.error("Erro ao criar o plano de pagamento. Tente novamente.");
       setIsLoading(false);
     }
