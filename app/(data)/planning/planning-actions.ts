@@ -3,48 +3,43 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireUser } from "../users/require-user";
-import { validateCsrf } from "@/lib/csrf";
 import { logger } from "@/lib/logger";
 import { sanitizeText } from "@/lib/sanitize";
 import { z } from "zod";
 
 const PaymentPlanSchema = z.object({
-  name: z.string().min(1, "O nome do pagamento é obrigatório").max(200),
+  name: z.string().min(1).max(200),
   supplier: z.string().max(200).optional().or(z.literal("")),
   event: z.string().max(200).optional().or(z.literal("")),
-  value: z.number().positive("O valor deve ser positivo"),
-  dueDate: z.string().date("A data de vencimento é inválida"),
+  value: z.number().positive(),
+  dueDate: z
+    .string()
+    .min(1, "A data de vencimento é obrigatória")
+    .transform((val) => new Date(val)),
   responsible: z.string().max(100).optional().or(z.literal("")),
   status: z.enum(["PENDING", "PAID", "OVERDUE"]).default("PENDING"),
 });
 
-type PaymentPlanInput = z.infer<typeof PaymentPlanSchema>;
 
 export async function createPaymentPlan(formData: FormData) {
   let userId = "unknown";
   const path = "/planejamento";
 
   try {
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     const user = await requireUser();
     userId = user.id;
 
-    const rawData: PaymentPlanInput = {
-      name: (formData.get("name") as string) || "",
-      supplier: (formData.get("supplier") as string) || "",
-      event: (formData.get("event") as string) || "",
-      value: parseFloat(formData.get("value") as string),
-      dueDate: (formData.get("dueDate") as string) || "",
-      responsible: (formData.get("responsible") as string) || "",
-      status: (formData.get("status") as "PENDING" | "PAID" | "OVERDUE") || "PENDING",
-    };
+const rawData = {
+  name: formData.get("name"),
+  supplier: formData.get("supplier"),
+  event: formData.get("event"),
+  value: Number(formData.get("value")),
+  dueDate: formData.get("dueDate"),
+  responsible: formData.get("responsible"),
+  status: formData.get("status") || "PENDING",
+};
+
 
     const validateData = PaymentPlanSchema.safeParse(rawData);
 
@@ -126,11 +121,6 @@ export async function updatePaymentPlanStatus(
   const path = "/planejamento";
 
   try {
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return { success: false, error: "Requisição inválida." };
-    }
-
     const user = await requireUser();
     userId = user.id;
 
@@ -166,13 +156,6 @@ export async function updatePaymentPlan(id: string, formData: FormData) {
   const path = "/planejamento";
 
   try {
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return {
-        success: false,
-        error: "Requisição inválida. Por favor, recarregue a página.",
-      };
-    }
 
     const user = await requireUser();
     userId = user.id;
@@ -192,15 +175,15 @@ export async function updatePaymentPlan(id: string, formData: FormData) {
       };
     }
 
-    const rawData: PaymentPlanInput = {
-      name: (formData.get("name") as string) || "",
-      supplier: (formData.get("supplier") as string) || "",
-      event: (formData.get("event") as string) || "",
-      value: parseFloat(formData.get("value") as string),
-      dueDate: (formData.get("dueDate") as string) || "",
-      responsible: (formData.get("responsible") as string) || "",
-      status: (formData.get("status") as "PENDING" | "PAID" | "OVERDUE") || "PENDING",
-    };
+    const rawData = {
+  name: formData.get("name"),
+  supplier: formData.get("supplier"),
+  event: formData.get("event"),
+  value: Number(formData.get("value")),
+  dueDate: formData.get("dueDate"),
+  responsible: formData.get("responsible"),
+  status: formData.get("status") ?? "PENDING",
+};
 
     const validateData = PaymentPlanSchema.safeParse(rawData);
 
@@ -253,14 +236,9 @@ export async function updatePaymentPlan(id: string, formData: FormData) {
 
 export async function deletePaymentPlan(id: string) {
   let userId = "unknown";
-  const path = "/planejamento";
+  const path = "/planning";
 
   try {
-    const csrfValid = await validateCsrf();
-    if (!csrfValid) {
-      return { success: false, error: "Requisição inválida." };
-    }
-
     const user = await requireUser();
     userId = user.id;
 
