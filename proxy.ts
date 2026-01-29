@@ -1,31 +1,21 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/") {
-    try {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
+    const hasSession =
+      request.cookies.has("better-auth.session_token");
 
-      if (session?.user) {
-        return NextResponse.redirect(new URL("/dashboard", request.url), {
-          status: 307,
-        });
-      }
-
-      return NextResponse.redirect(new URL("/login", request.url), {
-        status: 307,
-      });
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Error checking session in proxy:", error);
-      }
-      return NextResponse.redirect(new URL("/login", request.url), {
-        status: 307,
-      });
+    if (hasSession) {
+      return NextResponse.redirect(
+        new URL("/dashboard", request.url),
+        { status: 307 }
+      );
     }
+
+    return NextResponse.redirect(
+      new URL("/login", request.url),
+      { status: 307 }
+    );
   }
 
   return NextResponse.next();
