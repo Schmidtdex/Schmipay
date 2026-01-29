@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createPaymentPlan } from "@/app/(data)/planning/planning-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ export function CreatePaymentPlanForm() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const formRef = useRef<HTMLFormElement | null>(null);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -47,9 +49,9 @@ export function CreatePaymentPlanForm() {
 
       toast.success("Plano de pagamento criado com sucesso!");
 
-      e.currentTarget.reset();
+
+      formRef.current?.reset();
       setIsOpen(false);
-      setIsLoading(false);
     } catch (error) {
       console.error(error);
       toast.error("Erro ao criar o plano de pagamento. Tente novamente.");
@@ -73,7 +75,11 @@ export function CreatePaymentPlanForm() {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form 
+        ref={formRef}
+        onSubmit={handleSubmit} 
+        className="space-y-4"
+        >
           {/* Nome do Pagamento */}
           <div className="space-y-2">
             <Label htmlFor="name">Nome do Pagamento *</Label>
